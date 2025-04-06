@@ -42,7 +42,7 @@ public class DbContextRepository<TEntity> : IRepository<TEntity> where TEntity :
         return Entities.FirstOrDefaultAsync(predicate, cancellationToken);
     }
 
-    public Task<TEntity> GetAsync(Guid id, CancellationToken cancellationToken = default)
+    public Task<TEntity> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return Entities.FirstAsync(x => x.Id == id, cancellationToken);
     }

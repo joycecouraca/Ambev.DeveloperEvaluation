@@ -35,11 +35,11 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Products
         }
 
         /// <summary>
-        /// Creates a new user
+        /// Creates a new product
         /// </summary>
-        /// <param name="request">The user creation request</param>
+        /// <param name="request">The product creation request</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>The created user details</returns>
+        /// <returns>The created product details</returns>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponseWithData<CreateProductsResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]

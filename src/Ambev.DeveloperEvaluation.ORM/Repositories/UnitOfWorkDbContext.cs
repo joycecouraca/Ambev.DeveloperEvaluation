@@ -8,10 +8,16 @@ public class UnitOfWorkDbContext :  IUnitOfWork
     private readonly DefaultContext _context;
     public IRepository<Product> Products { get; }
 
-    public UnitOfWorkDbContext(DefaultContext context, IRepository<Product> productRepository)
+    public IRepository<Sales> Sales { get; }
+
+    public IRepository<User> Users { get; }
+
+    public UnitOfWorkDbContext(DefaultContext context, IRepository<Product> productRepository, IRepository<Sales> salesRepository, IRepository<User> userRepository)
     {
         _context = context;
         Products = productRepository;
+        Sales = salesRepository;
+        Users = userRepository;
     }
 
     public async Task CommitChangesAsync(CancellationToken cancellationToken = default)

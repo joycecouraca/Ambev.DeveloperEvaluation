@@ -13,7 +13,11 @@ public class ProductsProfile : Profile
 {
     public ProductsProfile()
     {
-        CreateMap<CreateProductsCommand, Product>();
+        CreateMap<CreateProductsCommand, Product>()
+            .ConstructUsing(cmd =>
+                new Product(cmd.Name, cmd.Price, cmd.Description, cmd.Quantity, cmd.Category)
+            );
+
         CreateMap<Product, CreateProductDto>()
            .ForMember(dest => dest.Category, src => src.MapFrom(s => s.Category.ToString()));
 

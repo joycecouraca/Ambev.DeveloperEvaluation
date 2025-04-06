@@ -1,38 +1,82 @@
-﻿using Ambev.DeveloperEvaluation.Common.Security;
-using Ambev.DeveloperEvaluation.Domain.Common;
+﻿using Ambev.DeveloperEvaluation.Domain.Common;
 using Ambev.DeveloperEvaluation.Domain.Enums;
+using Serilog;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
 public class Product : BaseEntity
 {
-    /// <summary>
-    /// Gets or sets the name of the product.
-    /// </summary>
-    public string Name { get; set; } = default!;
+    public string Name { get; private set; } = null!;
+    public decimal Price { get; private set; }
+    public string Description { get; private set; } = null!;
+    public int Quantity { get; private set; }
+    public ProductCategory Category { get; private set; } = default!;
+    public bool Active { get; private set; } = true;
 
-    /// <summary>
-    /// Gets or sets the price of the product.
-    /// </summary>
-    public decimal Price { get; set; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; private set; }
 
-    /// <summary>
-    /// Gets or sets the description of the product.
-    /// </summary>
-    public string Description { get; set; } = default!;
+    private Product() { } 
 
-    /// <summary>
-    /// Gets or sets the quantity of the product.
-    /// </summary>
-    public int Quantity { get; set; }
+    public Product(string name, decimal price, string description, int quantity, ProductCategory category)
+    {
+        SetBasicInfo(name, price, description, category);
 
-    /// <summary>
-    /// Gets or sets the category of the product.
-    /// </summary>
-    public ProductCategory Category { get; set; } = default!;
+        if (quantity < 0)
+            throw new DomainException("Product quantity cannot be negative.");
 
-    /// <summary>
-    /// Gets or sets the active of the product.
-    /// </summary>
-    public bool Active { get; set; } = true;
+        Quantity = quantity;
+    }
+
+    public void Change(string name, decimal price, string description, ProductCategory category)
+    {
+        SetBasicInfo(name, price, description, category);
+        MarkAsUpdated();
+    }
+
+    public void DecreaseQuantity(int quantity)
+    {
+        if (quantity <= 0)
+            throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
+
+        if (Quantity - quantity < 0)
+        {
+            Log.Error("Product#{Id} '{Name}' - insufficient stock. Current: {Quantity}, Attempted Decrease: {quantity}", Id, Name, Quantity, quantity);
+            throw new DomainException($"Insufficient stock for product '{Name}'.");
+        }
+
+        Quantity -= quantity;
+        MarkAsUpdated();
+    }
+
+    public void Disable()
+    {
+        Active = false;
+        MarkAsUpdated();
+    }
+
+    public void Enable()
+    {
+        Active = true;
+        MarkAsUpdated();
+    }
+
+    private void SetBasicInfo(string name, decimal price, string description, ProductCategory category)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException("Product name cannot be empty.");
+
+        if (price <= 0)
+            throw new DomainException("Product price must be greater than zero.");
+
+        Name = name;
+        Price = price;
+        Description = description;
+        Category = category;
+    }
+
+    private void MarkAsUpdated()
+    {
+        UpdatedAt = DateTime.UtcNow;
+    }
 }
