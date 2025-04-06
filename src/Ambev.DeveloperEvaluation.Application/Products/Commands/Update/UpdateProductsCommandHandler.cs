@@ -1,9 +1,10 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Common;
+using Ambev.DeveloperEvaluation.Application.Products.Commands.Create;
 using Ambev.DeveloperEvaluation.Application.Products.Commands.Update.Dtos;
-using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Ambev.DeveloperEvaluation.Application.Products.Commands.Update;
 
@@ -11,21 +12,24 @@ public class UpdateProductsCommandHandler : IRequestHandler<UpdateProductsComman
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ILogger<CreateProductsCommandHandler> _logger;
 
-    public UpdateProductsCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public UpdateProductsCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<CreateProductsCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Result<UpdateProductDto>> Handle(UpdateProductsCommand command, CancellationToken cancellationToken)
     {
         try
         {
-            var product = await _unitOfWork.Products.GetAsync(command.Id, cancellationToken);
+            var product = await _unitOfWork.Products.GetByIdAsync(command.Id, cancellationToken);
 
             if (product == null)
             {
+                _logger.LogWarning("Product with id {ProductId} not found", command.Id);
                 return Result<UpdateProductDto>.Failure($"Product with the id {command.Id} not found.");
             }
 
@@ -37,6 +41,7 @@ public class UpdateProductsCommandHandler : IRequestHandler<UpdateProductsComman
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error updating product with id {ProductId}", command.Id);
             return Result<UpdateProductDto>.Failure("Unexpected error:", ex.Message);
         }
     }

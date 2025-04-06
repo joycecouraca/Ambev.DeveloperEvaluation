@@ -1,10 +1,12 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Common;
+using Ambev.DeveloperEvaluation.Application.Products.Commands.Create;
 using Ambev.DeveloperEvaluation.Application.Products.Common;
 using Ambev.DeveloperEvaluation.Common.Pagination;
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
 namespace Ambev.DeveloperEvaluation.Application.Products.Query.GetAll;
@@ -13,11 +15,13 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ILogger<CreateProductsCommandHandler> _logger;
 
-    public GetAllProductsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public GetAllProductsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<CreateProductsCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Result<PaginatedList<GetProductDto>>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
@@ -44,6 +48,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error occurred while retrieving products");
             return Result<PaginatedList<GetProductDto>>.Failure($"Failed to load products: {ex.Message}");
         }
     }

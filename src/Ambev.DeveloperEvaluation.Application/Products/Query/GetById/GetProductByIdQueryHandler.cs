@@ -1,8 +1,10 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Common;
+using Ambev.DeveloperEvaluation.Application.Products.Commands.Create;
 using Ambev.DeveloperEvaluation.Application.Products.Common;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Ambev.DeveloperEvaluation.Application.Products.Query.GetById;
 
@@ -10,11 +12,13 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ILogger<CreateProductsCommandHandler> _logger;
 
-    public GetProductByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public GetProductByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<CreateProductsCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Result<GetProductDto>> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
@@ -25,6 +29,7 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
 
             if (product == null)
             {
+                _logger.LogWarning("Product with id {Id} not found", query.Id);
                 return Result<GetProductDto>.Failure($"Product with the id {query.Id} not found.");
             }
             
@@ -32,6 +37,7 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error occurred while retrieving product with id {Id}", query.Id);
             return Result<GetProductDto>.Failure($"Failed to load products: {ex.Message}");
         }
     }
