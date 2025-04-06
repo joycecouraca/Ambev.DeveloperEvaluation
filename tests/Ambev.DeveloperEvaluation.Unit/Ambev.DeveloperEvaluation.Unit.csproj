@@ -40,10 +40,4 @@
 		<ProjectReference Include="..\..\src\Ambev.DeveloperEvaluation.WebApi\Ambev.DeveloperEvaluation.WebApi.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="WebApi\Features\Products\Delete\" />
-	  <Folder Include="WebApi\Features\Products\Read\" />
-	  <Folder Include="WebApi\Features\Products\Update\" />
-	</ItemGroup>
-
 </Project>
