@@ -5,6 +5,8 @@ using Ambev.DeveloperEvaluation.WebApi.Features.Products.Create;
 using AutoMapper;
 using Ambev.DeveloperEvaluation.Application.Products.Commands.Update;
 using Ambev.DeveloperEvaluation.Application.Products.Commands.Update.Dtos;
+using Ambev.DeveloperEvaluation.WebApi.Features.Products.Read;
+using Ambev.DeveloperEvaluation.Application.Products.Common;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Products.Update;
 
@@ -24,5 +26,7 @@ public class UpdateProductsProfile : Profile
 
         CreateMap<UpdateProductDto, UpdateProductsResponse>()
             .ForMember(dest => dest.Category, src => src.MapFrom(s => s.Category.ToString()));
+
+        CreateMap<GetProductDto, ProductResponse>().ReverseMap();
     }
 }
