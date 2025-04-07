@@ -33,7 +33,7 @@ public class CreateSalesCommandHandler : IRequestHandler<CreateSalesCommand, Res
         if (!saleItemsResult.IsSuccess)
             return Result<CreateSaleDto>.Failure(saleItemsResult.Error!);
 
-        var sale = Domain.Entities.Sales.Create(customer!, creator!, command.SoldAt, command.BranchName);
+        var sale = Sale.Create(customer!, creator!, command.SoldAt, command.BranchName);
         sale.AddItems([.. saleItemsResult.Value!]);
 
         _unitOfWork.Sales.Add(sale);

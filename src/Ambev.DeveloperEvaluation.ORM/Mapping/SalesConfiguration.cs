@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Ambev.DeveloperEvaluation.ORM.Mapping;
 
-public class SalesConfiguration : IEntityTypeConfiguration<Sales>
+public class SalesConfiguration : IEntityTypeConfiguration<Sale>
 {
-    public void Configure(EntityTypeBuilder<Sales> builder)
+    public void Configure(EntityTypeBuilder<Sale> builder)
     {
         builder.ToTable("Sales");
 
@@ -41,7 +41,7 @@ public class SalesConfiguration : IEntityTypeConfiguration<Sales>
         
         builder.HasOne(s => s.CreatedBy)
             .WithMany()
-            .HasForeignKey("CreatedById")
+            .HasForeignKey(c=> c.CreatedById)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(s => s.BoughtBy)
@@ -51,12 +51,12 @@ public class SalesConfiguration : IEntityTypeConfiguration<Sales>
 
         builder.HasOne(s => s.CancelledBy)
             .WithMany()
-            .HasForeignKey("CancelledById")
+            .HasForeignKey(c=> c.CancelById)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(s => s.DeletedBy)
             .WithMany()
-            .HasForeignKey("DeletedById")
+            .HasForeignKey(c=> c.DeleteById)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(s => s.Items)

@@ -50,9 +50,7 @@ public class DbContextRepository<TEntity> : IRepository<TEntity> where TEntity :
 
     public Task<List<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
-#pragma warning disable RCS1079 // Throwing of new NotImplementedException.
-        throw new NotImplementedException();
-#pragma warning restore RCS1079 // Throwing of new NotImplementedException.
+        return Entities.Where(predicate).ToListAsync(cancellationToken);
     }
 
     public void Upsert(TEntity entity)

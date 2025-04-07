@@ -1,11 +1,12 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Common;
 using Ambev.DeveloperEvaluation.Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
-public class Sales : BaseEntity
+public class Sale : BaseEntity
 {
-    public Sales()
+    public Sale()
     {
         CreatedAt = DateTime.UtcNow;
         Status = SaleStatus.Created;
@@ -15,6 +16,7 @@ public class Sales : BaseEntity
     public string BranchName { get; private set; } = default!;
     public DateTime SoldAt { get; set; }
     public decimal TotalSaleAmount { get; private set; }
+    public decimal TotalDiscount { get; private set; }
     public SaleStatus Status { get; private set; }
     public DateTime CreatedAt { get; init; }
     public DateTime? UpdatedAt { get; private set; }
@@ -30,8 +32,9 @@ public class Sales : BaseEntity
     public Guid DeleteById { get; private set; }
     public User? DeletedBy { get; private set; }
 
-    public ICollection<SaleItem> Items { get; private set; } = new List<SaleItem>();
+    public ICollection<SaleItem> Items { get; private set; } = [];
 
+    [NotMapped]
     public IEnumerable<SaleItem> ActiveItems =>
         Items.Where(i => i.Status != SaleItemStatus.Deleted);
 
@@ -39,13 +42,13 @@ public class Sales : BaseEntity
     public bool CanBeEdited => Status == SaleStatus.Created;
     public bool HasAnyDeletedItem => Items.Any(i => i.Status == SaleItemStatus.Deleted);
 
-    public static Sales Create(User customer, User creator, DateTime soldAt, string branchName)
+    public static Sale Create(User customer, User creator, DateTime soldAt, string branchName)
     {
         ArgumentNullException.ThrowIfNull(customer);
         ArgumentNullException.ThrowIfNull(creator);
         ArgumentException.ThrowIfNullOrWhiteSpace(branchName);
 
-        return new Sales
+        return new Sale
         {
             BoughtBy = customer,
             BoughtById = customer.Id,
@@ -110,6 +113,10 @@ public class Sales : BaseEntity
         TotalSaleAmount = Items
             .Where(i => i.Status == SaleItemStatus.Created)
             .Sum(i => i.TotalAmount);
+
+        TotalDiscount = Items
+            .Where(i => i.Status == SaleItemStatus.Created)
+            .Sum(i => i.DiscountPerUnit);
     }
 
     public void DeleteItems(User deletedBy, params SaleItem[] items)

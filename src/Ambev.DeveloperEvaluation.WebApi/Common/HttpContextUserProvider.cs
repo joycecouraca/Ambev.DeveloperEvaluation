@@ -24,15 +24,13 @@ public class HttpContextUserProvider : IContextUserProvider
                          ?? throw new InvalidOperationException("User must be logged in the system.");
 
         var userId = GetClaimValue(userClaims, ClaimTypes.NameIdentifier);
-        var username = GetClaimValue(userClaims, ClaimTypes.Name);
-        var userEmail = GetClaimValue(userClaims, ClaimTypes.Email);
+        var username = GetClaimValue(userClaims, ClaimTypes.Name);        
         var userRole = GetClaimValue(userClaims, ClaimTypes.Role);
 
         return _cachedUser ??= new CurrentUserClaims
         {
             Id = Guid.Parse(userId),
-            Username = username,
-            Email = userEmail,
+            Username = username,            
             Role = userRole
         };
     }
@@ -46,8 +44,7 @@ public class HttpContextUserProvider : IContextUserProvider
     private record CurrentUserClaims : IUser
     {
         public required Guid Id { get; init; }
-        public required string Username { get; init; }
-        public required string Email { get; init; }
+        public required string Username { get; init; }        
         public required string Role { get; init; }        
     }
 }

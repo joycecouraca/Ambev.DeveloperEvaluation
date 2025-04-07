@@ -15,7 +15,15 @@ public class SaleItemConfiguration : IEntityTypeConfiguration<SaleItem>
         builder.Property(si => si.Quantity)
             .IsRequired();
 
-        builder.Property(si => si.UnitPrice)
+        builder.Property(si => si.OriginalUnitPrice)
+            .HasPrecision(18, 2)
+            .IsRequired();
+
+        builder.Property(si => si.DiscountPerUnit)
+            .HasPrecision(18, 2)
+            .IsRequired();
+
+        builder.Property(si => si.FinalUnitPrice)
             .HasPrecision(18, 2)
             .IsRequired();
 

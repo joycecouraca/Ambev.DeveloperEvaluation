@@ -5,7 +5,7 @@ public class CreateSalesRequest
     public DateTime SoldAt { get; set; }
     public string BranchName { get; set; } = default!;
     public Guid CustomerId { get; set; }
-    public List<SaleItemRequest> Items { get; set; } = new();
+    public List<SaleItemRequest> Items { get; set; } = [];
 }
 
 public class SaleItemRequest
