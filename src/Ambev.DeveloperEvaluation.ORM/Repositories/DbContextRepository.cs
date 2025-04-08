@@ -17,50 +17,43 @@ public class DbContextRepository<TEntity> : IRepository<TEntity> where TEntity :
         Entities = context.Set<TEntity>();
     }
 
-    public void Add(TEntity entity)
+    public virtual void Add(TEntity entity)
     {
         Entities.Add(entity);
     }
 
-    public void Update(TEntity entity)
+    public virtual void Update(TEntity entity)
     {
         Entities.Update(entity);
     }
 
-    public void Delete(TEntity entity)
+    public virtual void Delete(TEntity entity)
     {
         Entities.Remove(entity);
     }
 
-    public Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public virtual Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
         return Entities.AnyAsync(predicate, cancellationToken);
     }
 
-    public Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
         return Entities.FirstOrDefaultAsync(predicate, cancellationToken);
     }
 
-    public Task<TEntity> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return Entities.FirstAsync(x => x.Id == id, cancellationToken);
     }
 
 
-    public Task<List<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public virtual Task<List<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
         return Entities.Where(predicate).ToListAsync(cancellationToken);
     }
 
-    public void Upsert(TEntity entity)
-    {
-#pragma warning disable RCS1079 // Throwing of new NotImplementedException.
-        throw new NotImplementedException();
-#pragma warning restore RCS1079 // Throwing of new NotImplementedException.
-    }
-
-    public async Task<PaginatedList<TEntity>> GetPaginatedAsync(
+    public virtual async Task<PaginatedList<TEntity>> GetPaginatedAsync(
         int page,
         int pageSize,
         Expression<Func<TEntity, bool>>? filter = null,

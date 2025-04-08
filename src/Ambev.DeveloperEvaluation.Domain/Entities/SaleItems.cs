@@ -14,7 +14,7 @@ public class SaleItem : BaseEntity
     public int Quantity { get; private set; }
     public decimal OriginalUnitPrice { get; private set; }
     public decimal DiscountPerUnit { get; private set; }
-    public decimal FinalUnitPrice => OriginalUnitPrice - DiscountPerUnit;
+    public decimal FinalUnitPrice { get; private set; }
     public decimal TotalAmount => FinalUnitPrice * Quantity;
         
     public SaleItemStatus Status { get; private set; }
@@ -78,7 +78,15 @@ public class SaleItem : BaseEntity
             discountRate = 0.10m;
 
         DiscountPerUnit = OriginalUnitPrice * discountRate;
+        
+        CalculateFinalUnitPrice();
     }
+
+    private void CalculateFinalUnitPrice()
+    {
+        FinalUnitPrice = OriginalUnitPrice - DiscountPerUnit;
+    }
+
 
     private void CheckQuantityLimit()
     {

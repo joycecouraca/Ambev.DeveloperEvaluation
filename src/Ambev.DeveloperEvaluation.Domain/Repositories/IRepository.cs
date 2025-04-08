@@ -8,7 +8,6 @@ public interface IRepository<TEntity> where TEntity : BaseEntity
 {
     void Add(TEntity entity);
     void Update(TEntity entity);
-    void Upsert(TEntity entity);
     void Delete(TEntity entity);
     Task<TEntity> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);

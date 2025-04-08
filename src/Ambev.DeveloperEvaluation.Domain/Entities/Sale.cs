@@ -147,4 +147,27 @@ public class Sale : BaseEntity
 
         RefreshTotalAmount();
     }
+
+    public void CancelItems(User cancelledBy, params SaleItem[] itemsToCancel)
+    {
+        ArgumentNullException.ThrowIfNull(cancelledBy);
+        ArgumentNullException.ThrowIfNull(itemsToCancel);
+
+        foreach (var item in itemsToCancel)
+        {
+            if (item.Status == SaleItemStatus.Created)
+            {
+                item.Cancel(cancelledBy);
+            }
+        }
+
+        RefreshTotalAmount();
+
+        if (Items.All(i => i.Status == SaleItemStatus.Cancelled || i.Status == SaleItemStatus.Deleted))
+        {
+            Status = SaleStatus.Cancelled;
+            CancelledAt = UpdatedAt = DateTime.UtcNow;
+            CancelledBy = cancelledBy;
+        }
+    }
 }

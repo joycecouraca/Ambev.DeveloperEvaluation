@@ -31,9 +31,9 @@ public class SalesConfiguration : IEntityTypeConfiguration<Sale>
 
         builder.Property(s => s.UpdatedAt);
 
-        builder.Property(s => s.CancelledAt);
+        builder.Property(s => s.CancelledAt).IsRequired(false);
 
-        builder.Property(s => s.DeletedAt);
+        builder.Property(s => s.DeletedAt).IsRequired(false);
 
         builder.Property(s => s.BoughtById)
             .IsRequired();
@@ -51,11 +51,13 @@ public class SalesConfiguration : IEntityTypeConfiguration<Sale>
 
         builder.HasOne(s => s.CancelledBy)
             .WithMany()
+            .IsRequired(false)
             .HasForeignKey(c=> c.CancelById)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(s => s.DeletedBy)
             .WithMany()
+            .IsRequired(false)
             .HasForeignKey(c=> c.DeleteById)
             .OnDelete(DeleteBehavior.Restrict);
 

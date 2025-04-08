@@ -1,4 +1,5 @@
-﻿using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create.Dtos;
+﻿using Ambev.DeveloperEvaluation.Application.Sales.Commands.Cancel.Sale;
+using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create.Dtos;
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using AutoMapper;
 
@@ -22,6 +23,15 @@ public class SalesProfile : Profile
             .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
             .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.OriginalUnitPrice))            
             .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount))
-            .ForMember(dest => dest.DiscountPerUnit, opt => opt.MapFrom(src => src.DiscountPerUnit));           
+            .ForMember(dest => dest.DiscountPerUnit, opt => opt.MapFrom(src => src.DiscountPerUnit));
+
+        CreateMap<SaleItem, CancelledItemDto>()
+          .ForMember(dest => dest.ItemId, opt => opt.MapFrom(src => src.Id))
+          .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+          .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+          .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+          .ForMember(dest => dest.FinalUnitPrice, opt => opt.MapFrom(src => src.FinalUnitPrice))
+          .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount))
+          .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
     }
 }

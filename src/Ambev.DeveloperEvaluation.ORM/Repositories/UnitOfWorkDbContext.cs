@@ -8,11 +8,11 @@ public class UnitOfWorkDbContext :  IUnitOfWork
     private readonly DefaultContext _context;
     public IRepository<Product> Products { get; }
 
-    public IRepository<Sale> Sales { get; }
+    public ISaleRepository Sales { get; }
 
     public IRepository<User> Users { get; }
 
-    public UnitOfWorkDbContext(DefaultContext context, IRepository<Product> productRepository, IRepository<Sale> salesRepository, IRepository<User> userRepository)
+    public UnitOfWorkDbContext(DefaultContext context, IRepository<Product> productRepository, ISaleRepository salesRepository, IRepository<User> userRepository)
     {
         _context = context;
         Products = productRepository;

@@ -15,5 +15,6 @@ public class InfrastructureModuleInitializer : IModuleInitializer
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped(typeof(IRepository<>), typeof(DbContextRepository<>));
         builder.Services.AddScoped<IUnitOfWork, UnitOfWorkDbContext>();
+        builder.Services.AddScoped<ISaleRepository, SaleRepository>();
     }
 }
