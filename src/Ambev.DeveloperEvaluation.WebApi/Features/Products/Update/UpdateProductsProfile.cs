@@ -1,10 +1,6 @@
-﻿using Ambev.DeveloperEvaluation.Application.Products.Commands.Create.Dtos;
-using Ambev.DeveloperEvaluation.Application.Products.Commands.Create;
+﻿using Ambev.DeveloperEvaluation.Application.Products.Commands.Update;
 using Ambev.DeveloperEvaluation.Domain.Enums;
-using Ambev.DeveloperEvaluation.WebApi.Features.Products.Create;
 using AutoMapper;
-using Ambev.DeveloperEvaluation.Application.Products.Commands.Update;
-using Ambev.DeveloperEvaluation.Application.Products.Commands.Update.Dtos;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Products.Update;
 
@@ -21,8 +17,5 @@ public class UpdateProductsProfile : Profile
     {
         CreateMap<UpdateProductsRequest, UpdateProductsCommand>()
             .ForMember(dest => dest.Category, src => src.MapFrom(s => Enum.Parse<ProductCategory>(s.Category)));
-
-        CreateMap<UpdateProductDto, UpdateProductsResponse>()
-            .ForMember(dest => dest.Category, src => src.MapFrom(s => s.Category.ToString()));
     }
 }

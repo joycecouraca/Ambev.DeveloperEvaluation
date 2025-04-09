@@ -20,18 +20,21 @@ public abstract class BaseController : ControllerBase
 
             if (!result.IsSuccess)
             {
-                return BadRequest(new ApiResponse
+                var response = new ApiResponse
                 {
                     Success = false,
+                    Message = result.Message ?? "Business rule violation.",
                     Errors =
                     [
                         new ValidationErrorDetail
                         {
-                            Error = result.Error ?? "ExceptionError",
-                            Detail = result.Message ?? "Error processing the request"
+                            Error = result.Error ?? "BusinessError",
+                            Detail = result.Message ?? "A business rule was violated during processing."
                         }
                     ]
-                });
+                };
+
+                return BadRequest(response);
             }
 
             return onSuccess(result);

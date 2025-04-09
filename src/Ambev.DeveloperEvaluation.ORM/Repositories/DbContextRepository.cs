@@ -1,4 +1,5 @@
-﻿using Ambev.DeveloperEvaluation.Domain.Common;
+﻿using Ambev.DeveloperEvaluation.Common.Pagination;
+using Ambev.DeveloperEvaluation.Domain.Common;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.CodeAnalysis;
@@ -16,47 +17,57 @@ public class DbContextRepository<TEntity> : IRepository<TEntity> where TEntity :
         Entities = context.Set<TEntity>();
     }
 
-    public void Add(TEntity entity)
+    public virtual void Add(TEntity entity)
     {
         Entities.Add(entity);
     }
 
-    public void Update(TEntity entity)
+    public virtual void Update(TEntity entity)
     {
         Entities.Update(entity);
     }
 
-    public void Delete(TEntity entity)
+    public virtual void Delete(TEntity entity)
     {
         Entities.Remove(entity);
     }
 
-    public Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public virtual Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
         return Entities.AnyAsync(predicate, cancellationToken);
     }
 
-    public Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
         return Entities.FirstOrDefaultAsync(predicate, cancellationToken);
     }
 
-    public Task<TEntity> GetAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return Entities.FirstAsync(x => x.Id == id, cancellationToken);
+        return Entities.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public Task<List<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+
+    public virtual Task<List<TEntity>> FindAllAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
-#pragma warning disable RCS1079 // Throwing of new NotImplementedException.
-        throw new NotImplementedException();
-#pragma warning restore RCS1079 // Throwing of new NotImplementedException.
+        return Entities.Where(predicate).ToListAsync(cancellationToken);
     }
 
-    public void Upsert(TEntity entity)
+    public virtual async Task<PaginatedList<TEntity>> GetPaginatedAsync(
+        int page,
+        int pageSize,
+        Expression<Func<TEntity, bool>>? filter = null,
+        Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
+        CancellationToken cancellationToken = default)
     {
-#pragma warning disable RCS1079 // Throwing of new NotImplementedException.
-        throw new NotImplementedException();
-#pragma warning restore RCS1079 // Throwing of new NotImplementedException.
+        IQueryable<TEntity> query = Entities.AsNoTracking();
+
+        if (filter is not null)
+            query = query.Where(filter);
+
+        if (orderBy is not null)
+            query = orderBy(query);
+
+        return await PaginatedList<TEntity>.CreateAsync(query, page, pageSize, cancellationToken);
     }
 }

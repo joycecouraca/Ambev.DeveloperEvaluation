@@ -1,9 +1,12 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Ambev.DeveloperEvaluation.ORM.Mapping;
+
+[ExcludeFromCodeCoverage]
 
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {

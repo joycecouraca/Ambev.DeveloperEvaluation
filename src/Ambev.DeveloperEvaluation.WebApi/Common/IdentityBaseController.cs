@@ -25,10 +25,10 @@ public class IdentityBaseController : ControllerBase
     protected IActionResult NotFound(string message = "Resource not found") =>
         base.NotFound(new ApiResponse { Message = message, Success = false });
 
-    protected IActionResult OkPaginated<T>(PaginatedList<T> pagedList) =>
+    protected IActionResult OkPaginated<T>(PaginatedResponse<T> pagedList) =>
             Ok(new PaginatedResponse<T>
             {
-                Data = pagedList,
+                Data = pagedList.Data,
                 CurrentPage = pagedList.CurrentPage,
                 TotalPages = pagedList.TotalPages,
                 TotalCount = pagedList.TotalCount,

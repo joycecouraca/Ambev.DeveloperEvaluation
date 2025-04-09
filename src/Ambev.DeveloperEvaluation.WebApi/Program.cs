@@ -5,11 +5,12 @@ using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.IoC;
 using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Serilog;
-using System.Reflection;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
 
@@ -27,7 +28,37 @@ public class Program
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.AddBasicHealthChecks();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Minha API", Version = "v1" });
+
+                // Adiciona definição do esquema de segurança
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Digite o token JWT no formato: Bearer {seu token}"
+                });
+
+                // Adiciona o requisito de segurança global
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+            });
 
             builder.Services.AddDbContext<DefaultContext>(options =>
                 options.UseNpgsql(
@@ -39,6 +70,10 @@ public class Program
             builder.Services.AddJwtAuthentication(builder.Configuration);
 
             builder.RegisterDependencies();
+
+            builder.Services.AddHttpContextAccessor();
+
+            builder.Services.AddScoped<IContextUserProvider, HttpContextUserProvider>();
 
             builder.Services.AddAutoMapper(typeof(Program).Assembly, typeof(ApplicationLayer).Assembly);
 

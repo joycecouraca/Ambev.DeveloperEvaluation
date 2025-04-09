@@ -39,6 +39,9 @@ namespace Ambev.DeveloperEvaluation.ORM.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -55,9 +58,134 @@ namespace Ambev.DeveloperEvaluation.ORM.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.ToTable("Products", (string)null);
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Entities.Sale", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BoughtById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BranchName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("CancelById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DeleteById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("SaleNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("SoldAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalDiscount")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TotalSaleAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BoughtById");
+
+                    b.HasIndex("CancelById");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DeleteById");
+
+                    b.ToTable("Sales", (string)null);
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Entities.SaleItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CancelById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("DiscountPerUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("FinalUnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("OriginalUnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SaleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CancelById");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("SaleId");
+
+                    b.ToTable("SaleItems", (string)null);
                 });
 
             modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Entities.User", b =>
@@ -106,6 +234,77 @@ namespace Ambev.DeveloperEvaluation.ORM.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Entities.Sale", b =>
+                {
+                    b.HasOne("Ambev.DeveloperEvaluation.Domain.Entities.User", "BoughtBy")
+                        .WithMany()
+                        .HasForeignKey("BoughtById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Ambev.DeveloperEvaluation.Domain.Entities.User", "CancelledBy")
+                        .WithMany()
+                        .HasForeignKey("CancelById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Ambev.DeveloperEvaluation.Domain.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Ambev.DeveloperEvaluation.Domain.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeleteById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BoughtBy");
+
+                    b.Navigation("CancelledBy");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("DeletedBy");
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Entities.SaleItem", b =>
+                {
+                    b.HasOne("Ambev.DeveloperEvaluation.Domain.Entities.User", "CancelBy")
+                        .WithMany()
+                        .HasForeignKey("CancelById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ambev.DeveloperEvaluation.Domain.Entities.User", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Ambev.DeveloperEvaluation.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Ambev.DeveloperEvaluation.Domain.Entities.Sale", "Sale")
+                        .WithMany("Items")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CancelBy");
+
+                    b.Navigation("DeletedBy");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Sale");
+                });
+
+            modelBuilder.Entity("Ambev.DeveloperEvaluation.Domain.Entities.Sale", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }
