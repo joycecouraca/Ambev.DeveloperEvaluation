@@ -1,4 +1,4 @@
-# DeveloperStore - Sales API
+# Ambev.DeveloperEvaluation - Sales API
 
 This repository contains the implementation of a sales API for the DeveloperStore system. The API manages sales records, providing information about sale numbers, sale dates, customers, products, discounts, cancellation status, and more.
 
