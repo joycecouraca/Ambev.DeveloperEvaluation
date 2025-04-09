@@ -1,5 +1,5 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Common;
-using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create.Dtos;
+using Ambev.DeveloperEvaluation.Application.Sales.Common.Dtos;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
@@ -8,7 +8,7 @@ using MediatR;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.Commands.Create;
 
-public class CreateSalesCommandHandler : IRequestHandler<CreateSalesCommand, Result<CreateSaleDto>>
+public class CreateSalesCommandHandler : IRequestHandler<CreateSalesCommand, Result<SaleDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
@@ -21,7 +21,7 @@ public class CreateSalesCommandHandler : IRequestHandler<CreateSalesCommand, Res
         _currentUserAccessor = currentUserAccessor;
     }
 
-    public async Task<Result<CreateSaleDto>> Handle(CreateSalesCommand command, CancellationToken cancellationToken)
+    public async Task<Result<SaleDto>> Handle(CreateSalesCommand command, CancellationToken cancellationToken)
     {
         var (customer, creator, failureResult) = await GetUsersAsync(command.CustomerId, cancellationToken);
         
@@ -31,7 +31,7 @@ public class CreateSalesCommandHandler : IRequestHandler<CreateSalesCommand, Res
         var saleItemsResult = await BuildSaleItemsAsync(command, cancellationToken);
 
         if (!saleItemsResult.IsSuccess)
-            return Result<CreateSaleDto>.Failure(saleItemsResult.Error!);
+            return Result<SaleDto>.BusinessFailure(saleItemsResult.Error!);
 
         var sale = Sale.Create(customer!, creator!, command.SoldAt, command.BranchName);
         sale.AddItems([.. saleItemsResult.Value!]);
@@ -39,7 +39,7 @@ public class CreateSalesCommandHandler : IRequestHandler<CreateSalesCommand, Res
         _unitOfWork.Sales.Add(sale);
         await _unitOfWork.CommitChangesAsync(cancellationToken);
 
-        return Result<CreateSaleDto>.Success(_mapper.Map<CreateSaleDto>(sale));
+        return Result<SaleDto>.Success(_mapper.Map<SaleDto>(sale));
     }
 
     private static SaleItem CreateSaleItemWithDiscount(Product product, int quantity)
@@ -60,15 +60,15 @@ public class CreateSalesCommandHandler : IRequestHandler<CreateSalesCommand, Res
         return await _unitOfWork.Users.GetByIdAsync(creatorId.Id, cancellationToken);
     }
 
-    private async Task<(User? Customer, User? Creator, Result<CreateSaleDto>? FailureResult)> GetUsersAsync(Guid customerId, CancellationToken cancellationToken)
+    private async Task<(User? Customer, User? Creator, Result<SaleDto>? FailureResult)> GetUsersAsync(Guid customerId, CancellationToken cancellationToken)
     {
         var customer = await _unitOfWork.Users.GetByIdAsync(customerId, cancellationToken);
         if (customer is null)
-            return (null, null, Result<CreateSaleDto>.Failure("Customer not found."));
+            return (null, null, Result<SaleDto>.BusinessFailure("Customer not found."));
 
         var creator = await GetCreatorAsync(cancellationToken);
         if (creator is null)
-            return (customer, null, Result<CreateSaleDto>.Failure("User creating the sale was not found."));
+            return (customer, null, Result<SaleDto>.BusinessFailure("User creating the sale was not found."));
 
         return (customer, creator, null);
     }
@@ -86,10 +86,14 @@ public class CreateSalesCommandHandler : IRequestHandler<CreateSalesCommand, Res
         foreach (var item in command.Items)
         {
             if (!productDict.TryGetValue(item.ProductId, out var product))
-                return Result<List<SaleItem>>.Failure($"Product with ID {item.ProductId} not found.");
+                return Result<List<SaleItem>>.BusinessFailure($"Product with ID {item.ProductId} not found.");
 
             if (item.Quantity > 20)
-                return Result<List<SaleItem>>.Failure($"Cannot sell more than 20 items for product '{product.Name}'.");
+                return Result<List<SaleItem>>.BusinessFailure($"Cannot sell more than 20 items for product '{product.Name}'.");
+
+            // ✅ Validação de estoque
+            if (product.Quantity < item.Quantity)
+                return Result<List<SaleItem>>.BusinessFailure($"Insufficient stock for product '{product.Name}'. Requested: {item.Quantity}, Available: {product.Quantity}");
 
             var saleItem = CreateSaleItemWithDiscount(product, item.Quantity);
             saleItems.Add(saleItem);

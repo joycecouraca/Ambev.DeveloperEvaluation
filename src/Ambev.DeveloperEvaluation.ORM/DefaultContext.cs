@@ -2,10 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Ambev.DeveloperEvaluation.ORM;
 
+[ExcludeFromCodeCoverage]
 public class DefaultContext : DbContext
 {
     public DbSet<User> Users { get; set; }

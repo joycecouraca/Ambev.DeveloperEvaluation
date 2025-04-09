@@ -1,8 +1,6 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Common.Abstractions;
-using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create.Dtos;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Create;
-using Ambev.DeveloperEvaluation.WebApi.Features.Sales;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -10,6 +8,19 @@ using Xunit;
 using FluentAssertions;
 using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create;
 using Ambev.DeveloperEvaluation.Application.Common;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales;
+using Ambev.DeveloperEvaluation.Application.Sales.Common.Dtos;
+using Ambev.DeveloperEvaluation.Application.Sales.Commands.Cancel.Dtos;
+using Ambev.DeveloperEvaluation.Application.Sales.Commands.Cancel.Sale;
+using Ambev.DeveloperEvaluation.Application.Sales.Commands.Cancel.SaleItem;
+using Ambev.DeveloperEvaluation.Application.Sales.Querys.GetAll;
+using Ambev.DeveloperEvaluation.Application.Sales.Querys.GetById;
+using Ambev.DeveloperEvaluation.Common.Pagination;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Cancel.Sale;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Cancel.SaleItem;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Common.Response;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Read.GetAll;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Read.GetById;
 
 namespace Ambev.DeveloperEvaluation.Unit.WebApi.Features.Sales;
 
@@ -40,7 +51,7 @@ public class SalesControllerTests
             ]
         };
 
-        var resultDto = new CreateSaleDto
+        var resultDto = new SaleDto
         {
             Id = Guid.NewGuid(),
             SaleNumber = 123456,
@@ -65,9 +76,9 @@ public class SalesControllerTests
         };
 
         _dispatcherMock
-            .Setup(x => x.SendValidatedAsync<CreateSalesRequest, CreateSalesCommand, Result<CreateSaleDto>>(
+            .Setup(x => x.SendValidatedAsync<CreateSalesRequest, CreateSalesCommand, Result<SaleDto>>(
                 request, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CreateSaleDto>.Success(resultDto));
+            .ReturnsAsync(Result<SaleDto>.Success(resultDto));
 
         _mapperMock
             .Setup(m => m.Map<CreateSalesResponse>(resultDto))
@@ -97,7 +108,7 @@ public class SalesControllerTests
         };
 
         _dispatcherMock
-            .Setup(d => d.SendValidatedAsync<CreateSalesRequest, CreateSalesCommand, Result<CreateSaleDto>>(
+            .Setup(d => d.SendValidatedAsync<CreateSalesRequest, CreateSalesCommand, Result<SaleDto>>(
                 It.IsAny<CreateSalesRequest>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("Simulated failure"));
 
@@ -127,10 +138,10 @@ public class SalesControllerTests
             ]
         };
 
-        var failureResult = Result<CreateSaleDto>.Failure("Error occurred");
+        var failureResult = Result<SaleDto>.BusinessFailure("Error occurred");
 
         _dispatcherMock
-            .Setup(d => d.SendValidatedAsync<CreateSalesRequest, CreateSalesCommand, Result<CreateSaleDto>>(
+            .Setup(d => d.SendValidatedAsync<CreateSalesRequest, CreateSalesCommand, Result<SaleDto>>(
                 It.IsAny<CreateSalesRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(failureResult);
 
@@ -143,6 +154,229 @@ public class SalesControllerTests
         var response = badRequest.Value as ApiResponse;
         response.Should().NotBeNull();
         response!.Success.Should().BeFalse();
-        response.Message.Should().Be("Business rule violation.");
+        response.Message.Should().Be("BusinessRuleViolation");
+    }
+
+    [Fact]
+    public async Task GetAllSales_Should_Return_Sales_When_Successful()
+    {
+        var request = new GetAllSalesPaginationRequest { Page = 1, PageSize = 10, Search = "" };
+        var dtoList = new PaginatedList<SaleDto>
+        {
+            Items = [],
+            Page = 0,
+            PageSize = 10,
+            TotalCount = 1
+        };
+
+        _dispatcherMock
+            .Setup(x => x.SendValidatedAsync<GetAllSalesPaginationRequest, GetAllSalesQuery, Result<PaginatedList<SaleDto>>>(
+                request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<PaginatedList<SaleDto>>.Success(dtoList));
+
+        _mapperMock
+            .Setup(m => m.Map<List<SalesResponse>>(dtoList.Items))
+            .Returns([]);
+
+        var result = await _controller.GetAllSales(request, CancellationToken.None);
+
+        var okResult = result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        okResult!.StatusCode.Should().Be(200);
+    }
+
+    [Fact]
+    public async Task GetSaleById_Should_Return_Sale_When_Successful()
+    {
+        var saleId = Guid.NewGuid();
+        var dto = new SaleDto { Id = saleId };
+
+        _dispatcherMock
+            .Setup(d => d.SendValidatedAsync<GetSaleByIdRequest, GetSaleByIdQuery, Result<SaleDto>>(
+                It.Is<GetSaleByIdRequest>(r => r.Id == saleId),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<SaleDto>.Success(dto));
+
+        _mapperMock
+            .Setup(m => m.Map<SalesResponse>(dto))
+            .Returns(new SalesResponse { Id = saleId });
+
+        var result = await _controller.GetSaleById(saleId, CancellationToken.None);
+
+        var okResult = result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        okResult!.StatusCode.Should().Be(200);
+
+        var response = okResult.Value as ApiResponseWithData<SalesResponse>;
+        response.Should().NotBeNull();
+        response!.Success.Should().BeTrue();
+        response.Data!.Id.Should().Be(saleId);
+    }
+
+    [Fact]
+    public async Task CancelSale_Should_Return_Ok_When_Successful()
+    {
+        var saleId = Guid.NewGuid();
+
+        _dispatcherMock
+            .Setup(d => d.SendValidatedAsync<CancelSaleRequest, CancelSaleCommand, Result<Guid>>(
+                It.Is<CancelSaleRequest>(r => r.SaleId == saleId),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Guid>.Success(saleId));
+
+        var result = await _controller.CancelSale(saleId, CancellationToken.None);
+
+        var okResult = result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        okResult!.StatusCode.Should().Be(200);
+
+        var response = okResult.Value as ApiResponse;
+        response.Should().NotBeNull();
+        response!.Success.Should().BeTrue();
+        response.Message.Should().Be("Sale cancelled successfully");
+    }
+
+    [Fact]
+    public async Task CancelItem_Should_Return_Ok_When_Successful()
+    {
+        var saleId = Guid.NewGuid();
+        var itemIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+
+        var resultDto = new CancelSaleDto
+        {
+            SaleId = saleId,
+            CancelledItems =
+        [
+            new()
+            {
+                ItemId = itemIds[0],
+                ProductId = Guid.NewGuid(),
+                ProductName = "Produto A",
+                Quantity = 2,
+                FinalUnitPrice = 10.00m,
+                TotalAmount = 20.00m,
+                Status = "Cancelled"
+            },
+            new()
+            {
+                ItemId = itemIds[1],
+                ProductId = Guid.NewGuid(),
+                ProductName = "Produto B",
+                Quantity = 1,
+                FinalUnitPrice = 15.50m,
+                TotalAmount = 15.50m,
+                Status = "Cancelled"
+            }
+        ]
+        };
+
+        _dispatcherMock
+            .Setup(d => d.SendValidatedAsync<CancelSaleItemsRequest, CancelSaleItemsCommand, Result<CancelSaleDto>>(
+                It.IsAny<CancelSaleItemsRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<CancelSaleDto>.Success(resultDto));
+
+        var result = await _controller.CancelItem(saleId, itemIds, CancellationToken.None);
+
+        var okResult = result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        okResult!.StatusCode.Should().Be(200);
+
+        var response = okResult.Value as ApiResponseWithData<CancelSaleDto>;
+        response.Should().NotBeNull();
+        response!.Success.Should().BeTrue();
+        response.Data.Should().BeEquivalentTo(resultDto);
+    }
+
+    [Fact]
+    public async Task GetAllSales_Should_Return_BadRequest_When_Dispatcher_Returns_Failure()
+    {
+        var request = new GetAllSalesPaginationRequest { Page = 1, PageSize = 10 };
+        var failureResult = Result<PaginatedList<SaleDto>>.BusinessFailure("Erro de validação");
+
+        _dispatcherMock
+            .Setup(d => d.SendValidatedAsync<GetAllSalesPaginationRequest, GetAllSalesQuery, Result<PaginatedList<SaleDto>>>(
+                request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(failureResult);
+
+        var result = await _controller.GetAllSales(request, CancellationToken.None);
+
+        var badRequest = result as BadRequestObjectResult;
+        badRequest.Should().NotBeNull();
+        badRequest!.StatusCode.Should().Be(400);
+
+        var response = badRequest.Value as ApiResponse;
+        response.Should().NotBeNull();
+        response!.Success.Should().BeFalse();
+        response.Message.Should().Be("BusinessRuleViolation");
+    }
+
+    [Fact]
+    public async Task GetSaleById_Should_Return_BadRequest_When_Dispatcher_Returns_Failure()
+    {
+        var saleId = Guid.NewGuid();
+        var failureResult = Result<SaleDto>.BusinessFailure("Erro ao buscar venda");
+
+        _dispatcherMock
+            .Setup(d => d.SendValidatedAsync<GetSaleByIdRequest, GetSaleByIdQuery, Result<SaleDto>>(
+                It.IsAny<GetSaleByIdRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(failureResult);
+
+        var result = await _controller.GetSaleById(saleId, CancellationToken.None);
+
+        var badRequest = result as BadRequestObjectResult;
+        badRequest.Should().NotBeNull();
+        badRequest!.StatusCode.Should().Be(400);
+
+        var response = badRequest.Value as ApiResponse;
+        response.Should().NotBeNull();
+        response!.Success.Should().BeFalse();
+        response.Message.Should().Be("BusinessRuleViolation");
+    }
+
+    [Fact]
+    public async Task CancelSale_Should_Return_BadRequest_When_Dispatcher_Returns_Failure()
+    {
+        var saleId = Guid.NewGuid();
+        var failureResult = Result<Guid>.BusinessFailure("Falha ao cancelar");
+
+        _dispatcherMock
+            .Setup(d => d.SendValidatedAsync<CancelSaleRequest, CancelSaleCommand, Result<Guid>>(
+                It.IsAny<CancelSaleRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(failureResult);
+
+        var result = await _controller.CancelSale(saleId, CancellationToken.None);
+
+        var badRequest = result as BadRequestObjectResult;
+        badRequest.Should().NotBeNull();
+        badRequest!.StatusCode.Should().Be(400);
+
+        var response = badRequest.Value as ApiResponse;
+        response.Should().NotBeNull();
+        response!.Success.Should().BeFalse();
+        response.Message.Should().Be("BusinessRuleViolation");
+    }
+
+    [Fact]
+    public async Task CancelItem_Should_Return_BadRequest_When_Dispatcher_Returns_Failure()
+    {
+        var saleId = Guid.NewGuid();
+        var itemIds = new List<Guid> { Guid.NewGuid() };
+        var failureResult = Result<CancelSaleDto>.BusinessFailure("Erro ao cancelar itens");
+
+        _dispatcherMock
+            .Setup(d => d.SendValidatedAsync<CancelSaleItemsRequest, CancelSaleItemsCommand, Result<CancelSaleDto>>(
+                It.IsAny<CancelSaleItemsRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(failureResult);
+
+        var result = await _controller.CancelItem(saleId, itemIds, CancellationToken.None);
+
+        var badRequest = result as BadRequestObjectResult;
+        badRequest.Should().NotBeNull();
+        badRequest!.StatusCode.Should().Be(400);
+
+        var response = badRequest.Value as ApiResponse;
+        response.Should().NotBeNull();
+        response!.Success.Should().BeFalse();
+        response.Message.Should().Be("BusinessRuleViolation");
     }
 }

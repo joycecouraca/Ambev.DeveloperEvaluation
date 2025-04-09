@@ -1,18 +1,16 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Common;
 using Ambev.DeveloperEvaluation.Application.Common.Abstractions;
 using Ambev.DeveloperEvaluation.Application.Products.Commands.Create;
-using Ambev.DeveloperEvaluation.Application.Products.Commands.Create.Dtos;
 using Ambev.DeveloperEvaluation.Application.Products.Commands.Delete;
 using Ambev.DeveloperEvaluation.Application.Products.Commands.Update;
-using Ambev.DeveloperEvaluation.Application.Products.Commands.Update.Dtos;
 using Ambev.DeveloperEvaluation.Application.Products.Common;
 using Ambev.DeveloperEvaluation.Application.Products.Query.GetAll;
 using Ambev.DeveloperEvaluation.Application.Products.Query.GetById;
 using Ambev.DeveloperEvaluation.Common.Pagination;
 using Ambev.DeveloperEvaluation.WebApi.Common;
+using Ambev.DeveloperEvaluation.WebApi.Features.Products.Common.Response;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Create;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Delete;
-using Ambev.DeveloperEvaluation.WebApi.Features.Products.Read;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Read.GetAll;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Read.GetById;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Update;
@@ -41,16 +39,16 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Products
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>The created product details</returns>
         [HttpPost]
-        [ProducesResponseType(typeof(ApiResponseWithData<CreateProductsResponse>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponseWithData<ProductResponse>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateProduct([FromBody] CreateProductsRequest request, CancellationToken cancellationToken)
         {
-            return await SendValidated<CreateProductsRequest, CreateProductsCommand, Result<CreateProductDto>>(_dispatcher, request,
-                result => Created(string.Empty, new ApiResponseWithData<CreateProductsResponse>
+            return await SendValidated<CreateProductsRequest, CreateProductsCommand, Result<ProductDto>>(_dispatcher, request,
+                result => Created(string.Empty, new ApiResponseWithData<ProductResponse>
                 {
                     Success = true,
                     Message = "Product created successfully",
-                    Data = _mapper.Map<CreateProductsResponse>(result.Value)
+                    Data = _mapper.Map<ProductResponse>(result.Value)
                 }), cancellationToken);
         }
 
@@ -61,16 +59,16 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Products
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>The updated product details</returns>
         [HttpPut]
-        [ProducesResponseType(typeof(ApiResponseWithData<UpdateProductsResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseWithData<ProductResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateProduct([FromBody] UpdateProductsRequest request, CancellationToken cancellationToken)
         {
-            return await SendValidated<UpdateProductsRequest, UpdateProductsCommand, Result<UpdateProductDto>>(_dispatcher, request,
-                result => Ok(new ApiResponseWithData<UpdateProductsResponse>
+            return await SendValidated<UpdateProductsRequest, UpdateProductsCommand, Result<ProductDto>>(_dispatcher, request,
+                result => Ok(new ApiResponseWithData<ProductResponse>
                 {
                     Success = true,
                     Message = "Product updated successfully",
-                    Data = _mapper.Map<UpdateProductsResponse>(result.Value)
+                    Data = _mapper.Map<ProductResponse>(result.Value)
                 }), cancellationToken);
         }
 
@@ -108,7 +106,7 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Products
 
         public async Task<IActionResult> GetAllProduct([FromQuery] GetAllProductsPaginationRequest request, CancellationToken cancellationToken)
         {
-            return await SendValidated<GetAllProductsPaginationRequest, GetAllProductsQuery, Result<PaginatedList<GetProductDto>>>(
+            return await SendValidated<GetAllProductsPaginationRequest, GetAllProductsQuery, Result<PaginatedList<ProductDto>>>(
                 _dispatcher,
                 request,
                 result => Ok(new PaginatedList<ProductResponse>
@@ -133,7 +131,7 @@ namespace Ambev.DeveloperEvaluation.WebApi.Features.Products
         public async Task<IActionResult> GetProductById([FromRoute] Guid id, CancellationToken cancellationToken)
         {
             var request = new GetProductByIdRequest { Id = id };
-            return await SendValidated<GetProductByIdRequest, GetProductByIdQuery, Result<GetProductDto>>(
+            return await SendValidated<GetProductByIdRequest, GetProductByIdQuery, Result<ProductDto>>(
                 _dispatcher,
                 request,
                 result => Ok(new ApiResponseWithData<ProductResponse>

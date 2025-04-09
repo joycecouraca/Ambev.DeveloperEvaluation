@@ -1,18 +1,16 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Common;
 using Ambev.DeveloperEvaluation.Application.Common.Abstractions;
 using Ambev.DeveloperEvaluation.Application.Products.Commands.Create;
-using Ambev.DeveloperEvaluation.Application.Products.Commands.Create.Dtos;
 using Ambev.DeveloperEvaluation.Application.Products.Commands.Delete;
 using Ambev.DeveloperEvaluation.Application.Products.Commands.Update;
-using Ambev.DeveloperEvaluation.Application.Products.Commands.Update.Dtos;
 using Ambev.DeveloperEvaluation.Application.Products.Common;
 using Ambev.DeveloperEvaluation.Application.Products.Query.GetAll;
 using Ambev.DeveloperEvaluation.Application.Products.Query.GetById;
 using Ambev.DeveloperEvaluation.Common.Pagination;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products;
+using Ambev.DeveloperEvaluation.WebApi.Features.Products.Common.Response;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Create;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Delete;
-using Ambev.DeveloperEvaluation.WebApi.Features.Products.Read;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Read.GetAll;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Read.GetById;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.Update;
@@ -42,14 +40,14 @@ public class ProductsControllerTests
     {
         // Arrange
         var request = new CreateProductsRequest { Name = "Test", Description = "Desc" };
-        var resultDto = new CreateProductDto { Id = Guid.NewGuid(), Name = "Test", Description = "Desc" };
-        var result = Result<CreateProductDto>.Success(resultDto);
+        var resultDto = new ProductDto { Id = Guid.NewGuid(), Name = "Test", Description = "Desc" };
+        var result = Result<ProductDto>.Success(resultDto);
 
         _dispatcherMock
-            .Setup(x => x.SendValidatedAsync<CreateProductsRequest, CreateProductsCommand, Result<CreateProductDto>>(
+            .Setup(x => x.SendValidatedAsync<CreateProductsRequest, CreateProductsCommand, Result<ProductDto>>(
                 It.IsAny<CreateProductsRequest>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<CreateProductDto>.Success(new CreateProductDto
+            .ReturnsAsync(Result<ProductDto>.Success(new ProductDto
             {
                 Id = Guid.NewGuid(),
                 Name = "Test Product"
@@ -57,8 +55,8 @@ public class ProductsControllerTests
             }));
 
         _mapperMock
-            .Setup(x => x.Map<CreateProductsResponse>(It.IsAny<CreateProductDto>()))
-            .Returns(new CreateProductsResponse { Name = "Test", Description = "Desc" });
+            .Setup(x => x.Map<ProductResponse>(It.IsAny<ProductDto>()))
+            .Returns(new ProductResponse { Name = "Test", Description = "Desc" });
 
         // Act
         var response = await _controller.CreateProduct(request, CancellationToken.None);
@@ -73,16 +71,16 @@ public class ProductsControllerTests
     {
         // Arrange
         var request = new UpdateProductsRequest { Id = Guid.NewGuid(), Name = "Updated", Description = "Updated Desc" };
-        var resultDto = new UpdateProductDto { Id = request.Id, Name = request.Name, Description = request.Description };
-        var result = Result<UpdateProductDto>.Success(resultDto);
+        var resultDto = new ProductDto { Id = request.Id, Name = request.Name, Description = request.Description };
+        var result = Result<ProductDto>.Success(resultDto);
 
         _dispatcherMock
-            .Setup(x => x.SendValidatedAsync<UpdateProductsRequest, UpdateProductsCommand, Result<UpdateProductDto>>(It.IsAny<UpdateProductsRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.SendValidatedAsync<UpdateProductsRequest, UpdateProductsCommand, Result<ProductDto>>(It.IsAny<UpdateProductsRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(result);
 
         _mapperMock
-            .Setup(x => x.Map<UpdateProductsResponse>(It.IsAny<UpdateProductDto>()))
-            .Returns(new UpdateProductsResponse { Id = request.Id, Name = "Updated", Description = "Updated Desc" });
+            .Setup(x => x.Map<ProductResponse>(It.IsAny<ProductDto>()))
+            .Returns(new ProductResponse { Id = request.Id, Name = "Updated", Description = "Updated Desc" });
 
         // Act
         var response = await _controller.UpdateProduct(request, CancellationToken.None);
@@ -116,21 +114,21 @@ public class ProductsControllerTests
     {
         // Arrange
         var request = new GetAllProductsPaginationRequest { Page = 1, PageSize = 10 };
-        var resultDto = new PaginatedList<GetProductDto>
+        var resultDto = new PaginatedList<ProductDto>
         {
             Page = 1,
             PageSize = 10,
             TotalCount = 1,
-            Items = new List<GetProductDto> { new() { Id = Guid.NewGuid(), Name = "Prod", Description = "Desc" } }
+            Items = [new() { Id = Guid.NewGuid(), Name = "Prod", Description = "Desc" }]
         };
 
         _dispatcherMock
-            .Setup(x => x.SendValidatedAsync<GetAllProductsPaginationRequest, GetAllProductsQuery, Result<PaginatedList<GetProductDto>>>(It.IsAny<GetAllProductsPaginationRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<PaginatedList<GetProductDto>>.Success(resultDto));
+            .Setup(x => x.SendValidatedAsync<GetAllProductsPaginationRequest, GetAllProductsQuery, Result<PaginatedList<ProductDto>>>(It.IsAny<GetAllProductsPaginationRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<PaginatedList<ProductDto>>.Success(resultDto));
 
         _mapperMock
-            .Setup(x => x.Map<List<ProductResponse>>(It.IsAny<List<GetProductDto>>()))
-            .Returns(new List<ProductResponse> { new() { Name = "Prod", Description = "Desc" } });
+            .Setup(x => x.Map<List<ProductResponse>>(It.IsAny<List<ProductDto>>()))
+            .Returns([new() { Name = "Prod", Description = "Desc" }]);
 
         // Act
         var response = await _controller.GetAllProduct(request, CancellationToken.None);
@@ -146,11 +144,11 @@ public class ProductsControllerTests
         // Arrange
         var id = Guid.NewGuid();
         var request = new GetProductByIdRequest { Id = id };
-        var dto = new GetProductDto { Id = id, Name = "Produto", Description = "Descrição" };
+        var dto = new ProductDto { Id = id, Name = "Produto", Description = "Descrição" };
 
         _dispatcherMock
-            .Setup(x => x.SendValidatedAsync<GetProductByIdRequest, GetProductByIdQuery, Result<GetProductDto>>(It.IsAny<GetProductByIdRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<GetProductDto>.Success(dto));
+            .Setup(x => x.SendValidatedAsync<GetProductByIdRequest, GetProductByIdQuery, Result<ProductDto>>(It.IsAny<GetProductByIdRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<ProductDto>.Success(dto));
 
         _mapperMock
             .Setup(x => x.Map<ProductResponse>(dto))

@@ -1,5 +1,6 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create;
-using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create.Dtos;
+using Ambev.DeveloperEvaluation.Application.Sales.Common.Dtos;
+using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Common.Response;
 using AutoMapper;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Sales.Create;
@@ -8,16 +9,14 @@ public class CreateSalesProfile : Profile
 {
     public CreateSalesProfile()
     {
-        CreateMap<CreateSalesRequest, CreateSalesCommand>()
-             .ForMember(dest => dest.CreatedById, opt => opt.Ignore());
+        CreateMap<CreateSalesRequest, CreateSalesCommand>();
 
-        CreateMap<SaleItemRequest, CreateSaleItemDto>()
-            .ForMember(dest => dest.ProductName, opt => opt.Ignore())
-            .ForMember(dest => dest.UnitPrice, opt => opt.Ignore())
-            .ForMember(dest => dest.TotalAmount, opt => opt.Ignore())
-            .ForMember(dest => dest.DiscountTotal, opt => opt.Ignore())
-            .ForMember(dest => dest.DiscountPerUnit, opt => opt.Ignore());
+        CreateMap<SaleDto, CreateSalesResponse>()
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.TotalDiscountAmount, opt => opt.MapFrom(src => src.TotalDiscountAmount));
 
-        CreateMap<CreateSaleDto, CreateSalesResponse>();
+        CreateMap<SaleItemRequest, SaleItemUpsertDto>();
+
+        CreateMap<SaleItemDto, SaleItemResponse>();
     }
 }

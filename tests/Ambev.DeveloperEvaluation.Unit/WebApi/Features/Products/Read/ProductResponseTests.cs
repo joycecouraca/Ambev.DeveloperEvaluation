@@ -1,4 +1,4 @@
-﻿using Ambev.DeveloperEvaluation.WebApi.Features.Products.Read;
+﻿using Ambev.DeveloperEvaluation.Application.Products.Common;
 using FluentAssertions;
 using Xunit;
 
@@ -17,7 +17,7 @@ public class ProductResponseTests
 
         var id = Guid.NewGuid();
 
-        var response = new ProductResponse
+        var response = new ProductDto
         {
             Id = id,
             Name = name,

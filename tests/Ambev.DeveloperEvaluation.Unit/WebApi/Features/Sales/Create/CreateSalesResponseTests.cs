@@ -1,4 +1,4 @@
-﻿using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create.Dtos;
+﻿using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Common.Response;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Create;
 using FluentAssertions;
 using Xunit;
@@ -21,7 +21,7 @@ public class CreateSalesResponseTests
             Status = "Completed",
             Items =
             [
-                new CreateSaleItemDto
+                new SaleItemResponse
                 {
                     ProductId = Guid.NewGuid(),
                     ProductName = "Produto Teste",

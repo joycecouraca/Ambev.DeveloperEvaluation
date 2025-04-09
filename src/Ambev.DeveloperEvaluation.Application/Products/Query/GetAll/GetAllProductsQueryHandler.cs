@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 
 namespace Ambev.DeveloperEvaluation.Application.Products.Query.GetAll;
 
-public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, Result<PaginatedList<GetProductDto>>>
+public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, Result<PaginatedList<ProductDto>>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
@@ -24,7 +24,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
         _logger = logger;
     }
 
-    public async Task<Result<PaginatedList<GetProductDto>>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<ProductDto>>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -35,21 +35,21 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
                 filter = p => p.Name.Contains(query.Search) || p.Description.Contains(query.Search) && p.Active;
             }
 
-            Func<IQueryable<Product>, IOrderedQueryable<Product>> orderBy = q => q.OrderBy(p => p.Name);
-
             var result = await _unitOfWork.Products.GetPaginatedAsync(
                 query.Page,
                 query.PageSize,
                 filter,
-                orderBy,
-                cancellationToken);       
+                OrderBy,
+                cancellationToken);
 
-            return Result<PaginatedList<GetProductDto>>.Success(_mapper.Map<PaginatedList<GetProductDto>>(result));
+            return Result<PaginatedList<ProductDto>>.Success(_mapper.Map<PaginatedList<ProductDto>>(result));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while retrieving products");
-            return Result<PaginatedList<GetProductDto>>.Failure($"Failed to load products: {ex.Message}");
+            return Result<PaginatedList<ProductDto>>.BusinessFailure($"Failed to load products: {ex.Message}");
         }
     }
+
+    static IOrderedQueryable<Product> OrderBy(IQueryable<Product> q) => q.OrderBy(p => p.Name);
 }

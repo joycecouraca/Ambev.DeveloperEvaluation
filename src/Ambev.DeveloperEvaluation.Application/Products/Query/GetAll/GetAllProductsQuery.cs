@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Ambev.DeveloperEvaluation.Application.Products.Query.GetAll;
 
-public class GetAllProductsQuery : IRequest<Result<PaginatedList<GetProductDto>>>
+public class GetAllProductsQuery : IRequest<Result<PaginatedList<ProductDto>>>
 {
     public int Page { get; set; }
     public int PageSize { get; set; }

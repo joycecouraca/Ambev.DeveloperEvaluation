@@ -1,5 +1,7 @@
-﻿using Ambev.DeveloperEvaluation.Domain.Common;
+﻿using Ambev.DeveloperEvaluation.Domain.Abstractions;
+using Ambev.DeveloperEvaluation.Domain.Common;
 using Ambev.DeveloperEvaluation.Domain.Enums;
+using Ambev.DeveloperEvaluation.Domain.Events;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
@@ -38,9 +40,11 @@ public class Sale : BaseEntity
     public IEnumerable<SaleItem> ActiveItems =>
         Items.Where(i => i.Status != SaleItemStatus.Deleted);
 
-    public bool CanBeCancelled => Status != SaleStatus.Cancelled;
+    public bool CanBeCancelled => Status == SaleStatus.Cancelled;
     public bool CanBeEdited => Status == SaleStatus.Created;
     public bool HasAnyDeletedItem => Items.Any(i => i.Status == SaleItemStatus.Deleted);
+
+    private void AddEvent(IDomainEvent @event) => _events.Add(@event);
 
     public static Sale Create(User customer, User creator, DateTime soldAt, string branchName)
     {
@@ -48,7 +52,7 @@ public class Sale : BaseEntity
         ArgumentNullException.ThrowIfNull(creator);
         ArgumentException.ThrowIfNullOrWhiteSpace(branchName);
 
-        return new Sale
+        var sale = new Sale
         {
             BoughtBy = customer,
             BoughtById = customer.Id,
@@ -58,6 +62,10 @@ public class Sale : BaseEntity
             BranchName = branchName,
             SaleNumber = DateTime.UtcNow.Ticks,
         };
+
+        sale.AddEvent(new SaleCreatedDomainEvent(sale.Id, soldAt));
+
+        return sale;
     }
 
     public void AddItems(params SaleItem[] items)
@@ -85,6 +93,9 @@ public class Sale : BaseEntity
         Status = SaleStatus.Cancelled;
         CancelledAt = UpdatedAt = DateTime.UtcNow;
         CancelledBy = cancelledBy;
+
+        AddEvent(new SaleCancelledDomainEvent(Id, DateTime.UtcNow));
+
     }
 
     public void Change(User customer, DateTime soldAt, string branchName)
@@ -96,6 +107,9 @@ public class Sale : BaseEntity
         SoldAt = soldAt;
         BranchName = branchName;
         UpdatedAt = DateTime.UtcNow;
+
+        AddEvent(new SaleModifiedDomainEvent(Id, DateTime.UtcNow));
+
     }
 
     public void Delete(User deletedBy)
@@ -168,6 +182,8 @@ public class Sale : BaseEntity
             Status = SaleStatus.Cancelled;
             CancelledAt = UpdatedAt = DateTime.UtcNow;
             CancelledBy = cancelledBy;
+
+            AddEvent(new ItemCancelledDomainEvent(Id, [.. itemsToCancel.Select(i => i.Id)], DateTime.UtcNow));
         }
     }
 }

@@ -1,13 +1,14 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Common;
-using Ambev.DeveloperEvaluation.Application.Sales.Commands.Cancel.Sale;
+using Ambev.DeveloperEvaluation.Application.Sales.Commands.Cancel.Dtos;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Domain.Entities;
+using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using MediatR;
 
 namespace Ambev.DeveloperEvaluation.Application.Sales.Commands.Cancel.SaleItem;
 
-public class CancelSaleItemCommandHandler : IRequestHandler<CancelSaleItemsCommand, Result<CancelSaleItemResponse>>
+public class CancelSaleItemCommandHandler : IRequestHandler<CancelSaleItemsCommand, Result<CancelSaleDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IContextUserProvider _userProvider;
@@ -18,26 +19,35 @@ public class CancelSaleItemCommandHandler : IRequestHandler<CancelSaleItemsComma
         _userProvider = userProvider;
     }
 
-    public async Task<Result<CancelSaleItemResponse>> Handle(CancelSaleItemsCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CancelSaleDto>> Handle(CancelSaleItemsCommand request, CancellationToken cancellationToken)
     {
-        var user = _userProvider.GetCurrentUser();
+        var currentUser = _userProvider.GetCurrentUser();
+
+        if (currentUser is null)
+            return Result<CancelSaleDto>.BusinessFailure("CurrentUser not found.");
+
+        var userId = currentUser.Id; // vindo do CurrentUserClaims
+        var user = await _unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
         if (user is null)
-            return Result<CancelSaleItemResponse>.Failure("User not found.");
+            return Result<CancelSaleDto>.BusinessFailure("User not found.");
 
         var sale = await _unitOfWork.Sales.GetByIdWithItemsAsync(request.SaleId, cancellationToken);
         if (sale is null)
-            return Result<CancelSaleItemResponse>.Failure("Sale not found.");
+            return Result<CancelSaleDto>.BusinessFailure("Sale not found.");
 
         var itemsToCancel = sale.Items.Where(i => request.ItemIds.Contains(i.Id)).ToList();
         if (itemsToCancel.Count == 0)
-            return Result<CancelSaleItemResponse>.Failure("No valid items found for cancellation.");
+            return Result<CancelSaleDto>.BusinessFailure("No valid items found for cancellation.");
 
-        sale.CancelItems((User)user, [.. itemsToCancel]);
+        if(itemsToCancel.Exists(c=> c.Status == SaleItemStatus.Cancelled))
+            return Result<CancelSaleDto>.BusinessFailure("Some items are already cancelled.");
+
+        sale.CancelItems(user, [.. itemsToCancel]);
 
         _unitOfWork.Sales.Update(sale);
         await _unitOfWork.CommitChangesAsync(cancellationToken);
 
-        var response = new CancelSaleItemResponse
+        var response = new CancelSaleDto
         {
             SaleId = sale.Id,
             CancelledItems = [.. itemsToCancel.Select(item => new CancelledItemDto
@@ -52,6 +62,6 @@ public class CancelSaleItemCommandHandler : IRequestHandler<CancelSaleItemsComma
             })]
         };
 
-        return Result<CancelSaleItemResponse>.Success(response);
+        return Result<CancelSaleDto>.Success(response);
     }
 }

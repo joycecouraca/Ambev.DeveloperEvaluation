@@ -1,5 +1,4 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Products.Commands.Create;
-using Ambev.DeveloperEvaluation.Application.Products.Commands.Create.Dtos;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using AutoMapper;
 
@@ -18,8 +17,5 @@ public class CreateProductsProfile : Profile
     {
         CreateMap<CreateProductsRequest, CreateProductsCommand>()
             .ForMember(dest => dest.Category, src => src.MapFrom(s => Enum.Parse<ProductCategory>(s.Category)));
-      
-        CreateMap<CreateProductDto, CreateProductsResponse>()
-            .ForMember(dest => dest.Category, src=> src.MapFrom(s => s.Category.ToString()));
     }
 }

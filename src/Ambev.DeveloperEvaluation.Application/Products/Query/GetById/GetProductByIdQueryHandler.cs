@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Ambev.DeveloperEvaluation.Application.Products.Query.GetById;
 
-public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, Result<GetProductDto>>
+public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, Result<ProductDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
@@ -21,7 +21,7 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
         _logger = logger;
     }
 
-    public async Task<Result<GetProductDto>> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
+    public async Task<Result<ProductDto>> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
     {
         try
         {
@@ -30,15 +30,15 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, R
             if (product == null)
             {
                 _logger.LogWarning("Product with id {Id} not found", query.Id);
-                return Result<GetProductDto>.Failure($"Product with the id {query.Id} not found.");
+                return Result<ProductDto>.BusinessFailure($"Product with the id {query.Id} not found.");
             }
             
-            return Result<GetProductDto>.Success(_mapper.Map<GetProductDto>(product));
+            return Result<ProductDto>.Success(_mapper.Map<ProductDto>(product));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while retrieving product with id {Id}", query.Id);
-            return Result<GetProductDto>.Failure($"Failed to load products: {ex.Message}");
+            return Result<ProductDto>.BusinessFailure($"Failed to load products: {ex.Message}");
         }
     }
 }

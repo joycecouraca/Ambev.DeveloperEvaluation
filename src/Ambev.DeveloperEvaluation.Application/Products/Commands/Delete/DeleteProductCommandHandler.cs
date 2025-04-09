@@ -26,10 +26,10 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductsCommand
             if (product == null)
             {
                 _logger.LogWarning("Product with id {ProductId} not found", command.Id);
-                return Result<Guid>.Failure($"Product with the id {command.Id} not found.");
+                return Result<Guid>.BusinessFailure($"Product with the id {command.Id} not found.");
             }
-            
-            //product.Active = false;
+
+            product.Disable();
 
             _unitOfWork.Products.Update(product);
             await _unitOfWork.CommitChangesAsync(cancellationToken);
@@ -39,7 +39,7 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductsCommand
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting product with id {ProductId}", command.Id);
-            return Result<Guid>.Failure($"Unexpected error: {ex.Message}");
+            return Result<Guid>.BusinessFailure($"Unexpected error: {ex.Message}");
         }
     }
 }

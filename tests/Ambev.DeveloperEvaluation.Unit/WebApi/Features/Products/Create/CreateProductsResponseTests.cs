@@ -1,4 +1,4 @@
-﻿using Ambev.DeveloperEvaluation.WebApi.Features.Products.Create;
+﻿using Ambev.DeveloperEvaluation.WebApi.Features.Products.Common.Response;
 using FluentAssertions;
 using Xunit;
 
@@ -10,7 +10,7 @@ public class CreateProductsResponseTests
     public void CreateProductsResponse_Should_Set_All_Properties_Correctly()
     {
         // Arrange
-        var response = new CreateProductsResponse
+        var response = new ProductResponse
         {
             Id = Guid.NewGuid(),
             Name = "Test Product",

@@ -42,9 +42,9 @@ public class DbContextRepository<TEntity> : IRepository<TEntity> where TEntity :
         return Entities.FirstOrDefaultAsync(predicate, cancellationToken);
     }
 
-    public virtual Task<TEntity> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return Entities.FirstAsync(x => x.Id == id, cancellationToken);
+        return Entities.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
 

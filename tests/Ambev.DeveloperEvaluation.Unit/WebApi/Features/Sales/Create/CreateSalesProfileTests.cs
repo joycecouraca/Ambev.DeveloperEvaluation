@@ -1,9 +1,9 @@
-﻿using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create.Dtos;
-using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create;
+﻿using Ambev.DeveloperEvaluation.Application.Sales.Commands.Create;
+using Ambev.DeveloperEvaluation.Application.Sales.Common.Dtos;
 using Ambev.DeveloperEvaluation.WebApi.Features.Sales.Create;
 using AutoMapper;
-using Xunit;
 using FluentAssertions;
+using Xunit;
 
 namespace Ambev.DeveloperEvaluation.Unit.WebApi.Features.Sales.Create;
 
@@ -51,7 +51,7 @@ public class CreateSalesProfileTests
     [Fact]
     public void Should_Map_CreateSaleDto_To_CreateSalesResponse()
     {
-        var dto = new CreateSaleDto
+        var dto = new SaleDto
         {
             SaleNumber = 123456,
             BranchName = "Rio de Janeiro",

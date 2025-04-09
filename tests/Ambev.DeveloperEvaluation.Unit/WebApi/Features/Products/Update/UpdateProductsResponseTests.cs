@@ -1,4 +1,4 @@
-﻿using Ambev.DeveloperEvaluation.WebApi.Features.Products.Update;
+﻿using Ambev.DeveloperEvaluation.WebApi.Features.Products.Common.Response;
 using FluentAssertions;
 using Xunit;
 
@@ -9,7 +9,7 @@ public class UpdateProductsResponseTests
     [Fact]
     public void Should_Create_Response_With_Valid_Properties()
     {
-        var response = new UpdateProductsResponse
+        var response = new ProductResponse
         {
             Id = Guid.NewGuid(),
             Name = "Updated Product",
